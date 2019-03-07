@@ -1,0 +1,29 @@
+-- To create a table to hold the sum of numerical columns from target and source database.
+with cte as
+(
+SELECT [TABLE_CATALOG]
+      ,[TABLE_SCHEMA]
+      ,[TABLE_NAME]
+      ,[COLUMN_NAME]
+      ,[DATA_TYPE]
+      ,[NUMERIC_PRECISION]
+      
+  FROM [AdventureWorks2014].[INFORMATION_SCHEMA].[COLUMNS]
+  where NUMERIC_PRECISION is not null and TABLE_NAME in(SELECT [TABLE_NAME] FROM [AdventureWorks2014].[INFORMATION_SCHEMA].[TABLES]
+  where TABLE_TYPE='BASE TABLE') 
+  )
+
+
+SELECT distinct [Database Name]
+      ,[Source Schema]
+      ,[Source Table Name]
+      ,[SOURCE_COLUMN_NAME] as [Source Column Name]
+      ,[Target Schema/Owner]
+      ,[Target Table Name]
+      ,[TARGET_COLUMN_NAME] as [Target Column Name]
+	  ,null as [Source Column Sum]
+	  ,null as [Target Column Sum]
+ INTO [MIGRATION_TESTING].[dbo].[Comparison_Sum_NumericColumns]
+  FROM [MIGRATION_TESTING].[dbo].[All_Columns] al inner join cte 
+  on al.[Source Schema]=cte.TABLE_SCHEMA and al.[Source Table Name]=cte.TABLE_NAME and al.[SOURCE_COLUMN_NAME]=cte.COLUMN_NAME
+  ORDER BY  [Source Schema],[Source Table Name],[SOURCE_COLUMN_NAME]
